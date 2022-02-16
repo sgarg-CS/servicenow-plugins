@@ -31,7 +31,6 @@ import io.cdap.plugin.servicenow.source.util.Util;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.Optional;
 
 import javax.annotation.Nullable;
 
@@ -100,8 +99,7 @@ public class ServiceNowBaseSourceConfig extends PluginConfig {
   public ServiceNowBaseSourceConfig(String referenceName, String tableNameField, String clientId,
                                     String clientSecret, String restApiEndpoint,
                                     String user, String password,
-                                    String valueType, @Nullable String startDate, @Nullable String endDate
-  ) {
+                                    String valueType, @Nullable String startDate, @Nullable String endDate) {
 
     this.referenceName = referenceName;
     this.tableNameField = tableNameField;
@@ -163,7 +161,6 @@ public class ServiceNowBaseSourceConfig extends PluginConfig {
     validateCredentials(collector);
     validateValueType(collector);
     validateDateRange(collector);
-    validateTableNameField(collector);
   }
 
   public void validateCredentials(FailureCollector collector) {
@@ -224,7 +221,9 @@ public class ServiceNowBaseSourceConfig extends PluginConfig {
    * @param collector The failure collector to collect the errors
    * @return An instance of SourceValueType
    */
-  public SourceValueType getValueType(FailureCollector collector) {
+
+  @VisibleForTesting
+  SourceValueType getValueType(FailureCollector collector) {
     SourceValueType type = getValueType();
     if (type != null) {
       return type;
@@ -247,7 +246,7 @@ public class ServiceNowBaseSourceConfig extends PluginConfig {
     return SourceValueType.fromValue(valueType).orElse(null);
   }
 
-  public void validateValueType(FailureCollector collector) {
+  private void validateValueType(FailureCollector collector) {
     if (containsMacro(ServiceNowConstants.PROPERTY_VALUE_TYPE)) {
       return;
     }
@@ -255,7 +254,7 @@ public class ServiceNowBaseSourceConfig extends PluginConfig {
     getValueType(collector);
   }
 
-  public void validateDateRange(FailureCollector collector) {
+  private void validateDateRange(FailureCollector collector) {
     if (containsMacro(ServiceNowConstants.PROPERTY_START_DATE) ||
       containsMacro(ServiceNowConstants.PROPERTY_END_DATE)) {
       return;
@@ -300,17 +299,6 @@ public class ServiceNowBaseSourceConfig extends PluginConfig {
       collector.addFailure("End date must be greater than Start date.", null)
         .withConfigProperty(ServiceNowConstants.PROPERTY_START_DATE)
         .withConfigProperty(ServiceNowConstants.PROPERTY_END_DATE);
-    }
-  }
-
-  public void validateTableNameField(FailureCollector collector) {
-    if (containsMacro(ServiceNowConstants.PROPERTY_TABLE_NAME_FIELD)) {
-      return;
-    }
-
-    if (Util.isNullOrEmpty(tableNameField)) {
-      collector.addFailure("Table name field must be specified.", null)
-        .withConfigProperty(ServiceNowConstants.PROPERTY_TABLE_NAME_FIELD);
     }
   }
 

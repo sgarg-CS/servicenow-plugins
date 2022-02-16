@@ -169,13 +169,8 @@ public class ServiceNowSourceConfig extends ServiceNowBaseSourceConfig {
    * Validates {@link ServiceNowSourceConfig} instance.
    */
   public void validate(FailureCollector collector) {
-    // Validates the given referenceName to consists of characters allowed to represent a dataset.
-    IdUtils.validateReferenceName(referenceName, collector);
-
-    validateCredentials(collector);
+    super.validate(collector);
     validateQueryMode(collector);
-    validateValueType(collector);
-    validateDateRange(collector);
   }
 
   private void validateQueryMode(FailureCollector collector) {

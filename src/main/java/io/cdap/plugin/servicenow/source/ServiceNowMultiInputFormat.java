@@ -59,7 +59,7 @@ public class ServiceNowMultiInputFormat extends InputFormat<NullWritable, Struct
    * @return Collection of ServiceNowTableInfo containing table and schema.
    */
   public static Set<ServiceNowTableInfo> setInput(Configuration jobConfig,
-                                                   ServiceNowMultiSourceConfig conf) {
+                                                  ServiceNowMultiSourceConfig conf) {
     ServiceNowJobConfiguration jobConf = new ServiceNowJobConfiguration(jobConfig);
     jobConf.setMultiSourcePluginConfiguration(conf);
 
@@ -72,7 +72,7 @@ public class ServiceNowMultiInputFormat extends InputFormat<NullWritable, Struct
     return tableInfos;
   }
 
-  protected static Set<ServiceNowTableInfo> fetchTablesInfo(ServiceNowMultiSourceConfig conf) {
+  static Set<ServiceNowTableInfo> fetchTablesInfo(ServiceNowMultiSourceConfig conf) {
 
     Set<ServiceNowTableInfo> tablesInfos = new LinkedHashSet<>();
 

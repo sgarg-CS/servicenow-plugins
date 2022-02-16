@@ -373,7 +373,7 @@ public class ServiceNowSourceConfigTest {
       config.validate(collector);
       collector.getOrThrowException();
     } catch (ValidationException e) {
-      Assert.assertEquals(ServiceNowConstants.PROPERTY_CLIENT_ID, e.getFailures().get(0).getCauses().get(0)
+      Assert.assertEquals(ServiceNowConstants.PROPERTY_START_DATE, e.getFailures().get(0).getCauses().get(0)
         .getAttribute(CauseAttributes.STAGE_CONFIG));
     }
 
@@ -399,7 +399,7 @@ public class ServiceNowSourceConfigTest {
       config.validate(collector);
       collector.getOrThrowException();
     } catch (ValidationException e) {
-      Assert.assertEquals(ServiceNowConstants.PROPERTY_CLIENT_ID, e.getFailures().get(0).getCauses().get(0)
+      Assert.assertEquals(ServiceNowConstants.PROPERTY_END_DATE, e.getFailures().get(0).getCauses().get(0)
         .getAttribute(CauseAttributes.STAGE_CONFIG));
     }
 
@@ -425,7 +425,7 @@ public class ServiceNowSourceConfigTest {
       config.validate(collector);
       collector.getOrThrowException();
     } catch (ValidationException e) {
-      Assert.assertEquals(ServiceNowConstants.PROPERTY_CLIENT_ID, e.getFailures().get(0).getCauses().get(0)
+      Assert.assertEquals(ServiceNowConstants.PROPERTY_START_DATE, e.getFailures().get(0).getCauses().get(0)
         .getAttribute(CauseAttributes.STAGE_CONFIG));
     }
 

@@ -16,6 +16,7 @@
 
 package io.cdap.plugin.servicenow.source;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
 import io.cdap.cdap.api.annotation.Name;
@@ -82,9 +83,22 @@ public class ServiceNowMultiSourceConfig extends ServiceNowBaseSourceConfig {
   public void validate(FailureCollector collector) {
     super.validate(collector);
     validateTableNames(collector);
+    validateTableNameField(collector);
   }
 
-  public void validateTableNames(FailureCollector collector) {
+  private void validateTableNameField(FailureCollector collector) {
+    if (containsMacro(ServiceNowConstants.PROPERTY_TABLE_NAME_FIELD)) {
+      return;
+    }
+
+    if (Util.isNullOrEmpty(tableNameField)) {
+      collector.addFailure("Table name field must be specified.", null)
+        .withConfigProperty(ServiceNowConstants.PROPERTY_TABLE_NAME_FIELD);
+    }
+  }
+
+  @VisibleForTesting
+  void validateTableNames(FailureCollector collector) {
     if (containsMacro(ServiceNowConstants.PROPERTY_TABLE_NAMES)) {
       return;
     }

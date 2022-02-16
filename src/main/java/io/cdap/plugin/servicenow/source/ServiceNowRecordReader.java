@@ -16,6 +16,7 @@
 
 package io.cdap.plugin.servicenow.source;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
@@ -188,11 +189,13 @@ public class ServiceNowRecordReader extends RecordReader<NullWritable, Structure
     }
   }
 
-  public String convertToStringValue(Object fieldValue) {
+  @VisibleForTesting
+  String convertToStringValue(Object fieldValue) {
     return String.valueOf(fieldValue);
   }
 
-  public Double convertToDoubleValue(Object fieldValue) {
+  @VisibleForTesting
+  Double convertToDoubleValue(Object fieldValue) {
     if (fieldValue instanceof String && Strings.isNullOrEmpty(String.valueOf(fieldValue))) {
       return null;
     }
@@ -200,7 +203,8 @@ public class ServiceNowRecordReader extends RecordReader<NullWritable, Structure
     return Double.parseDouble(String.valueOf(fieldValue));
   }
 
-  public Integer convertToIntegerValue(Object fieldValue) {
+  @VisibleForTesting
+  Integer convertToIntegerValue(Object fieldValue) {
     if (fieldValue instanceof String && Strings.isNullOrEmpty(String.valueOf(fieldValue))) {
       return null;
     }
@@ -208,7 +212,8 @@ public class ServiceNowRecordReader extends RecordReader<NullWritable, Structure
     return Integer.parseInt(String.valueOf(fieldValue));
   }
 
-  public Boolean convertToBooleanValue(Object fieldValue) {
+  @VisibleForTesting
+  Boolean convertToBooleanValue(Object fieldValue) {
     if (fieldValue instanceof String && Strings.isNullOrEmpty(String.valueOf(fieldValue))) {
       return null;
     }
