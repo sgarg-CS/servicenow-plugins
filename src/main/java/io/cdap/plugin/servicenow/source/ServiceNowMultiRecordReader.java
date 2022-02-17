@@ -22,7 +22,6 @@ import io.cdap.plugin.servicenow.source.apiclient.ServiceNowTableAPIClientImpl;
 import io.cdap.plugin.servicenow.source.apiclient.ServiceNowTableDataResponse;
 import io.cdap.plugin.servicenow.source.util.SchemaBuilder;
 import io.cdap.plugin.servicenow.source.util.ServiceNowConstants;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +32,7 @@ import java.util.List;
 /**
  * Record reader that reads the entire contents of a ServiceNow table.
  */
-public class ServiceNowMultiRecordReader extends ServiceNowRecordReader {
+public class ServiceNowMultiRecordReader extends ServiceNowBaseRecordReader {
   private static final Logger LOG = LoggerFactory.getLogger(ServiceNowMultiRecordReader.class);
   private final ServiceNowMultiSourceConfig multiSourcePluginConf;
 
@@ -88,7 +87,7 @@ public class ServiceNowMultiRecordReader extends ServiceNowRecordReader {
     // Get the table data
     results =
       restApi.fetchTableRecords(tableName, multiSourcePluginConf.getStartDate(), multiSourcePluginConf.getEndDate(),
-        split.getOffset(), ServiceNowConstants.PAGE_SIZE);
+                                split.getOffset(), ServiceNowConstants.PAGE_SIZE);
 
     LOG.debug("size={}", results.size());
     if (!results.isEmpty()) {
@@ -101,7 +100,7 @@ public class ServiceNowMultiRecordReader extends ServiceNowRecordReader {
   private void fetchSchema(ServiceNowTableAPIClientImpl restApi) {
     // Fetch the column definition
     ServiceNowTableDataResponse response = restApi.fetchTableSchema(tableName, null, null,
-      false);
+                                                                    false);
     if (response == null) {
       return;
     }

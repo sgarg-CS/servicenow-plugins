@@ -16,8 +16,6 @@
 
 package io.cdap.plugin.servicenow.source;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.plugin.servicenow.source.apiclient.ServiceNowTableAPIClientImpl;
@@ -25,48 +23,24 @@ import io.cdap.plugin.servicenow.source.apiclient.ServiceNowTableDataResponse;
 import io.cdap.plugin.servicenow.source.util.SchemaBuilder;
 import io.cdap.plugin.servicenow.source.util.ServiceNowConstants;
 import io.cdap.plugin.servicenow.source.util.SourceQueryMode;
-import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Record reader that reads the entire contents of a ServiceNow table.
  */
-public class ServiceNowRecordReader extends RecordReader<NullWritable, StructuredRecord> {
+public class ServiceNowRecordReader extends ServiceNowBaseRecordReader {
   private static final Logger LOG = LoggerFactory.getLogger(ServiceNowRecordReader.class);
   private final ServiceNowSourceConfig pluginConf;
-  protected ServiceNowInputSplit split;
-  protected int pos;
-  protected List<Schema.Field> tableFields;
-  protected Schema schema;
 
-  protected String tableName;
-  protected String tableNameField;
-  protected List<Map<String, Object>> results;
-  protected Iterator<Map<String, Object>> iterator;
-  protected Map<String, Object> row;
-
-  public ServiceNowRecordReader() {
-    pluginConf = null;
-  }
 
   ServiceNowRecordReader(ServiceNowSourceConfig pluginConf) {
+    super();
     this.pluginConf = pluginConf;
-  }
-
-  @Override
-  public void initialize(InputSplit split, TaskAttemptContext context) {
-    this.split = (ServiceNowInputSplit) split;
-    this.pos = 0;
   }
 
   @Override
@@ -91,11 +65,6 @@ public class ServiceNowRecordReader extends RecordReader<NullWritable, Structure
   }
 
   @Override
-  public NullWritable getCurrentKey() {
-    return NullWritable.get();
-  }
-
-  @Override
   public StructuredRecord getCurrentValue() throws IOException {
     StructuredRecord.Builder recordBuilder = StructuredRecord.builder(schema);
 
@@ -116,15 +85,6 @@ public class ServiceNowRecordReader extends RecordReader<NullWritable, Structure
     return recordBuilder.build();
   }
 
-  @Override
-  public float getProgress() throws IOException, InterruptedException {
-    return pos / (float) split.getLength();
-  }
-
-  @Override
-  public void close() throws IOException {
-  }
-
   private void fetchData() {
     tableName = split.getTableName();
     tableNameField = pluginConf.getTableNameField();
@@ -133,7 +93,7 @@ public class ServiceNowRecordReader extends RecordReader<NullWritable, Structure
 
     // Get the table data
     results = restApi.fetchTableRecords(tableName, pluginConf.getStartDate(), pluginConf.getEndDate(),
-      split.getOffset(), ServiceNowConstants.PAGE_SIZE);
+                                        split.getOffset(), ServiceNowConstants.PAGE_SIZE);
     LOG.debug("size={}", results.size());
     if (!results.isEmpty()) {
       fetchSchema(restApi);
@@ -145,7 +105,7 @@ public class ServiceNowRecordReader extends RecordReader<NullWritable, Structure
   private void fetchSchema(ServiceNowTableAPIClientImpl restApi) {
     // Fetch the column definition
     ServiceNowTableDataResponse response = restApi.fetchTableSchema(tableName, null, null,
-      false);
+                                                                    false);
     if (response == null) {
       return;
     }
@@ -163,61 +123,4 @@ public class ServiceNowRecordReader extends RecordReader<NullWritable, Structure
     schema = Schema.recordOf(tableName, schemaFields);
   }
 
-  protected Object convertToValue(String fieldName, Schema fieldSchema, Map<String, Object> record) {
-    Schema.Type fieldType = fieldSchema.getType();
-    Object fieldValue = record.get(fieldName);
-
-    switch (fieldType) {
-      case STRING:
-        return convertToStringValue(fieldValue);
-      case DOUBLE:
-        return convertToDoubleValue(fieldValue);
-      case INT:
-        return convertToIntegerValue(fieldValue);
-      case BOOLEAN:
-        return convertToBooleanValue(fieldValue);
-      case UNION:
-        if (fieldSchema.isNullable()) {
-          return convertToValue(fieldName, fieldSchema.getNonNullable(), record);
-        }
-        throw new IllegalStateException(
-          String.format("Field '%s' is of unexpected type '%s'. Declared 'complex UNION' types: %s",
-            fieldName, record.get(fieldName).getClass().getSimpleName(), fieldSchema.getUnionSchemas()));
-      default:
-        throw new IllegalStateException(
-          String.format("Record type '%s' is not supported for field '%s'", fieldType.name(), fieldName));
-    }
-  }
-
-  @VisibleForTesting
-  String convertToStringValue(Object fieldValue) {
-    return String.valueOf(fieldValue);
-  }
-
-  @VisibleForTesting
-  Double convertToDoubleValue(Object fieldValue) {
-    if (fieldValue instanceof String && Strings.isNullOrEmpty(String.valueOf(fieldValue))) {
-      return null;
-    }
-
-    return Double.parseDouble(String.valueOf(fieldValue));
-  }
-
-  @VisibleForTesting
-  Integer convertToIntegerValue(Object fieldValue) {
-    if (fieldValue instanceof String && Strings.isNullOrEmpty(String.valueOf(fieldValue))) {
-      return null;
-    }
-
-    return Integer.parseInt(String.valueOf(fieldValue));
-  }
-
-  @VisibleForTesting
-  Boolean convertToBooleanValue(Object fieldValue) {
-    if (fieldValue instanceof String && Strings.isNullOrEmpty(String.valueOf(fieldValue))) {
-      return null;
-    }
-
-    return Boolean.parseBoolean(String.valueOf(fieldValue));
-  }
 }
