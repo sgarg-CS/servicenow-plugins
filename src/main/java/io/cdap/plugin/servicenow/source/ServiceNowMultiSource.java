@@ -88,7 +88,7 @@ public class ServiceNowMultiSource extends BatchSource<NullWritable, StructuredR
   }
 
   @Override
-  public void prepareRun(BatchSourceContext context) throws Exception {
+  public void prepareRun(BatchSourceContext context) {
     FailureCollector collector = context.getFailureCollector();
     conf.validate(collector);
     collector.getOrThrowException();
