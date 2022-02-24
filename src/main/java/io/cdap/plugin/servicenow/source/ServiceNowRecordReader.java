@@ -111,8 +111,7 @@ public class ServiceNowRecordReader extends ServiceNowBaseRecordReader {
     }
 
     // Build schema
-    SchemaBuilder schemaBuilder = new SchemaBuilder();
-    Schema tempSchema = schemaBuilder.constructSchema(tableName, response.getColumns());
+    Schema tempSchema = SchemaBuilder.constructSchema(tableName, response.getColumns());
     tableFields = tempSchema.getFields();
     List<Schema.Field> schemaFields = new ArrayList<>(tableFields);
 

@@ -103,8 +103,7 @@ public class ServiceNowMultiInputFormat extends InputFormat<NullWritable, Struct
       return null;
     }
 
-    SchemaBuilder schemaBuilder = new SchemaBuilder();
-    Schema schema = schemaBuilder.constructSchema(tableName, columns);
+    Schema schema = SchemaBuilder.constructSchema(tableName, columns);
     LOG.debug("table {}, rows = {}", tableName, response.getTotalRecordCount());
     return new ServiceNowTableInfo(tableName, schema, response.getTotalRecordCount());
   }

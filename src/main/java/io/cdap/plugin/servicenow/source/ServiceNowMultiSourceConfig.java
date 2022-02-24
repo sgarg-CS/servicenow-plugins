@@ -109,42 +109,7 @@ public class ServiceNowMultiSourceConfig extends ServiceNowBaseSourceConfig {
     } else {
       Set<String> tableNames = ServiceNowMultiInputFormat.getList(getTableNames());
       for (String tableName : tableNames) {
-        // Call API to fetch first record from the table
-        ServiceNowTableAPIRequestBuilder requestBuilder = new ServiceNowTableAPIRequestBuilder(
-          this.getRestApiEndpoint(), tableName)
-          .setExcludeReferenceLink(true)
-          .setDisplayValue(this.getValueType())
-          .setLimit(1);
-
-        RestAPIResponse apiResponse = null;
-        ServiceNowTableAPIClientImpl serviceNowTableAPIClient = new ServiceNowTableAPIClientImpl(this);
-        try {
-          String accessToken = serviceNowTableAPIClient.getAccessToken();
-          requestBuilder.setAuthHeader(accessToken);
-
-          // Get the response JSON and fetch the header X-Total-Count. Set the value to recordCount
-          requestBuilder.setResponseHeaders(ServiceNowConstants.HEADER_NAME_TOTAL_COUNT);
-
-          apiResponse = serviceNowTableAPIClient.executeGet(requestBuilder.build());
-          if (!apiResponse.isSuccess()) {
-            if (apiResponse.getHttpStatus() == HttpStatus.SC_BAD_REQUEST) {
-              collector.addFailure("Bad Request. Table: " + tableName + " is invalid.", "")
-                .withConfigProperty(ServiceNowConstants.PROPERTY_TABLE_NAMES);
-            }
-          } else if (serviceNowTableAPIClient.parseResponseToResultListOfMap(apiResponse.getResponseBody()).isEmpty()) {
-            collector.addFailure("Table: " + tableName + " is empty.", "")
-              .withConfigProperty(ServiceNowConstants.PROPERTY_TABLE_NAMES);
-          }
-        } catch (OAuthSystemException | OAuthProblemException e) {
-          collector.addFailure("Unable to connect to ServiceNow Instance.",
-              "Ensure properties like Client ID, Client Secret, API Endpoint, User Name, Password " +
-                "are correct.")
-            .withConfigProperty(ServiceNowConstants.PROPERTY_CLIENT_ID)
-            .withConfigProperty(ServiceNowConstants.PROPERTY_CLIENT_SECRET)
-            .withConfigProperty(ServiceNowConstants.PROPERTY_API_ENDPOINT)
-            .withConfigProperty(ServiceNowConstants.PROPERTY_USER)
-            .withConfigProperty(ServiceNowConstants.PROPERTY_PASSWORD);
-        }
+        validateTable(tableName, collector);
       }
     }
   }

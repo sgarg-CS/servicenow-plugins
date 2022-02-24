@@ -10,8 +10,7 @@ Properties
 
 **Reference Name**: Name used to uniquely identify this source for lineage, annotating metadata, etc.
 
-**Table Names**: The name of the ServiceNow table(s) from which data to be fetched. Note, the Table name value will be 
-ignored if the Mode is set to `Reporting`.
+**Table Names**: The name of the ServiceNow table(s) from which data to be fetched.
 
 **Client ID**: The Client ID for ServiceNow Instance.
 
