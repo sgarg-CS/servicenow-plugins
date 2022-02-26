@@ -83,11 +83,9 @@ public class ServiceNowRecordReaderTest {
 
     serviceNowRecordReader.close();
     Assert.assertEquals(0, serviceNowRecordReader.pos);
-    Assert.assertEquals("pipeline.user.1", serviceNowSourceConfig.getUser());
     Assert.assertEquals("tablename", serviceNowSourceConfig.getTableNameField());
     Assert.assertEquals("tablename", serviceNowSourceConfig.getTableName());
     Assert.assertEquals("2021-12-30", serviceNowSourceConfig.getStartDate());
-    Assert.assertEquals("https://ven05127.service-now.com", serviceNowSourceConfig.getRestApiEndpoint());
     Assert.assertEquals("referenceName", serviceNowSourceConfig.getReferenceName());
     Assert.assertEquals("2021-12-31", serviceNowSourceConfig.getEndDate());
     PluginProperties properties = serviceNowSourceConfig.getProperties();
