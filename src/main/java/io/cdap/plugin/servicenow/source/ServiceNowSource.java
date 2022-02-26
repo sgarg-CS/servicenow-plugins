@@ -77,13 +77,7 @@ public class ServiceNowSource extends BatchSource<NullWritable, StructuredRecord
     collector.getOrThrowException();
     if (conf.shouldGetSchema()) {
       List<ServiceNowTableInfo> tableInfo = ServiceNowInputFormat.fetchTableInfo(conf.getQueryMode(collector), conf);
-      if (tableInfo.isEmpty()) {
-        collector.addFailure("Table: " + conf.getTableName() + " has no data.", "")
-          .withConfigProperty(ServiceNowConstants.PROPERTY_TABLE_NAMES);
-      } else {
-        stageConfigurer.setOutputSchema(
-          tableInfo.get(0).getSchema());
-      }
+      stageConfigurer.setOutputSchema(tableInfo.get(0).getSchema());
     }
   }
 

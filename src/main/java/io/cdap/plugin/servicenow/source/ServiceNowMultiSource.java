@@ -77,13 +77,7 @@ public class ServiceNowMultiSource extends BatchSource<NullWritable, StructuredR
     // This is to avoid adding same validation errors again in getSchema method call
     if (conf.shouldGetSchema()) {
       Set<ServiceNowTableInfo> tableInfos = ServiceNowMultiInputFormat.fetchTablesInfo(conf);
-      if (tableInfos.isEmpty()) {
-        collector.addFailure("Table(s): " + conf.getTableNames() + " have no data.", "")
-          .withConfigProperty(ServiceNowConstants.PROPERTY_TABLE_NAMES);
-      } else {
-        stageConfigurer.setOutputSchema(tableInfos.stream().findFirst().get().getSchema());
-      }
-
+      stageConfigurer.setOutputSchema(tableInfos.stream().findFirst().get().getSchema());
     }
   }
 
