@@ -20,26 +20,15 @@ import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.macro.Macros;
 import io.cdap.cdap.api.plugin.PluginProperties;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.internal.AssumptionViolatedException;
 import org.junit.rules.ExpectedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
 
 public class ServiceNowRecordReaderTest {
-
-  private static final String CLIENT_ID = System.getProperty("servicenow.test.clientId");
-  private static final String CLIENT_SECRET = System.getProperty("servicenow.test.clientSecret");
-  private static final String REST_API_ENDPOINT = System.getProperty("servicenow.test.restApiEndpoint");
-  private static final String USER = System.getProperty("servicenow.test.user");
-  private static final String PASSWORD = System.getProperty("servicenow.test.password");
-  private static final Logger LOG = LoggerFactory.getLogger(ServiceNowMultiInputFormatTest.class);
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();
@@ -48,28 +37,21 @@ public class ServiceNowRecordReaderTest {
 
   @Before
   public void initializeTests() {
-    try {
-      Assume.assumeNotNull(CLIENT_ID, CLIENT_SECRET, REST_API_ENDPOINT, USER, PASSWORD);
-      serviceNowSourceConfig = ServiceNowSourceConfigHelper.newConfigBuilder()
-        .setReferenceName("referenceName")
-        .setRestApiEndpoint(REST_API_ENDPOINT)
-        .setUser(USER)
-        .setPassword(PASSWORD)
-        .setClientId(CLIENT_ID)
-        .setClientSecret(CLIENT_SECRET)
-        .setTableNames("sys_user")
-        .setValueType("Actual")
-        .setStartDate("2021-12-30")
-        .setEndDate("2021-12-31")
-        .setTableNameField("tablename")
-        .build();
+    serviceNowSourceConfig = ServiceNowSourceConfigHelper.newConfigBuilder()
+      .setReferenceName("referenceName")
+      .setRestApiEndpoint("http://example.com")
+      .setUser("user")
+      .setPassword("password")
+      .setClientId("client_id")
+      .setClientSecret("client_secret")
+      .setTableNames("sys_user")
+      .setValueType("Actual")
+      .setStartDate("2021-12-30")
+      .setEndDate("2021-12-31")
+      .setTableNameField("tablename")
+      .build();
 
-      serviceNowRecordReader = new ServiceNowRecordReader(serviceNowSourceConfig);
-
-    } catch (AssumptionViolatedException e) {
-      LOG.warn("Service Now batch multi source tests are skipped. ");
-      throw e;
-    }
+    serviceNowRecordReader = new ServiceNowRecordReader(serviceNowSourceConfig);
   }
 
   @Test

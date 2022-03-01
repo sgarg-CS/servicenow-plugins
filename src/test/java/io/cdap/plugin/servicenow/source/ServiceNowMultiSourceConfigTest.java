@@ -19,14 +19,10 @@ package io.cdap.plugin.servicenow.source;
 import io.cdap.cdap.etl.api.validation.ValidationFailure;
 import io.cdap.cdap.etl.mock.validation.MockFailureCollector;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.internal.AssumptionViolatedException;
 import org.junit.rules.ExpectedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -35,39 +31,26 @@ import java.util.List;
  */
 public class ServiceNowMultiSourceConfigTest {
 
-  private static final String CLIENT_ID = System.getProperty("servicenow.test.clientId");
-  private static final String CLIENT_SECRET = System.getProperty("servicenow.test.clientSecret");
-  private static final String REST_API_ENDPOINT = System.getProperty("servicenow.test.restApiEndpoint");
-  private static final String USER = System.getProperty("servicenow.test.user");
-  private static final String PASSWORD = System.getProperty("servicenow.test.password");
-  private static final Logger LOG = LoggerFactory.getLogger(ServiceNowMultiSourceConfigTest.class);
-
   @Rule
   public ExpectedException thrown = ExpectedException.none();
   private ServiceNowMultiSourceConfig serviceNowMultiSourceConfig;
 
   @Before
   public void initializeTests() {
-    try {
-      serviceNowMultiSourceConfig =
-        ServiceNowSourceConfigHelper.newConfigBuilder()
-          .setReferenceName("Reference Name")
-          .setRestApiEndpoint(REST_API_ENDPOINT)
-          .setUser(USER)
-          .setPassword(PASSWORD)
-          .setClientId(CLIENT_ID)
-          .setClientSecret(CLIENT_SECRET)
-          .setTableNames("sys_user")
-          .setValueType("Actual")
-          .setStartDate("2021-12-30")
-          .setEndDate("2021-12-31")
-          .setTableNameField("tablename")
-          .buildMultiSource();
-      Assume.assumeNotNull(CLIENT_ID, CLIENT_SECRET, REST_API_ENDPOINT, USER, PASSWORD);
-    } catch (AssumptionViolatedException e) {
-      LOG.warn("Service Now Multi Source tests are skipped. ");
-      throw e;
-    }
+    serviceNowMultiSourceConfig =
+      ServiceNowSourceConfigHelper.newConfigBuilder()
+        .setReferenceName("Reference Name")
+        .setRestApiEndpoint("https://example.com")
+        .setUser("user")
+        .setPassword("password")
+        .setClientId("client_id")
+        .setClientSecret("client_secret")
+        .setTableNames("sys_user")
+        .setValueType("Actual")
+        .setStartDate("2021-12-30")
+        .setEndDate("2021-12-31")
+        .setTableNameField("tablename")
+        .buildMultiSource();
   }
 
   @Test
@@ -83,98 +66,58 @@ public class ServiceNowMultiSourceConfigTest {
   public void testValidate() {
     MockFailureCollector mockFailureCollector = new MockFailureCollector("Stage Name");
     serviceNowMultiSourceConfig.validate(mockFailureCollector);
-    Assert.assertEquals(1, mockFailureCollector.getValidationFailures().size());
+    Assert.assertEquals(3, mockFailureCollector.getValidationFailures().size());
+  }
+
+  @Test
+  public void testValidateWhenTableFieldNameIsEmpty() {
+    MockFailureCollector mockFailureCollector = new MockFailureCollector("Stage Name");
+    serviceNowMultiSourceConfig =
+      ServiceNowSourceConfigHelper.newConfigBuilder()
+        .setReferenceName("Reference Name")
+        .setRestApiEndpoint("https://example.com")
+        .setUser("user")
+        .setPassword("password")
+        .setClientId("client_id")
+        .setClientSecret("client_secret")
+        .setTableNames("sys_user")
+        .setValueType("Actual")
+        .setStartDate("2021-12-30")
+        .setEndDate("2021-12-31")
+        .setTableNameField("")
+        .buildMultiSource();
+    serviceNowMultiSourceConfig.validate(mockFailureCollector);
+    Assert.assertEquals(4, mockFailureCollector.getValidationFailures().size());
   }
 
   @Test
   public void testValidateTableNames() {
     MockFailureCollector mockFailureCollector = new MockFailureCollector("Stage Name");
     serviceNowMultiSourceConfig.validateTableNames(mockFailureCollector);
-    Assert.assertEquals(0, mockFailureCollector.getValidationFailures().size());
+    Assert.assertEquals(1, mockFailureCollector.getValidationFailures().size());
   }
 
-
   @Test
-  public void testValidateTableNamesWhenTableNamesAreEmpty() {
+  public void testValidateTableNamesWhenTableNamesAreEmpty() throws NoSuchFieldException {
+    MockFailureCollector mockFailureCollector = new MockFailureCollector("Stage Name");
     serviceNowMultiSourceConfig =
       ServiceNowSourceConfigHelper.newConfigBuilder()
         .setReferenceName("Reference Name")
-        .setRestApiEndpoint(REST_API_ENDPOINT)
-        .setUser(USER)
-        .setPassword(PASSWORD)
-        .setClientId(CLIENT_ID)
-        .setClientSecret(CLIENT_SECRET)
+        .setRestApiEndpoint("https://example.com")
+        .setUser("user")
+        .setPassword("password")
+        .setClientId("client_id")
+        .setClientSecret("client_secret")
         .setTableNames("")
         .setValueType("Actual")
         .setStartDate("2021-12-30")
         .setEndDate("2021-12-31")
         .setTableNameField("tablename")
         .buildMultiSource();
-    MockFailureCollector mockFailureCollector = new MockFailureCollector("Stage Name");
-    serviceNowMultiSourceConfig.validateTableNames(mockFailureCollector);
-    List<ValidationFailure> validationFailures = mockFailureCollector.getValidationFailures();
-    Assert.assertEquals(1, validationFailures.size());
-    ValidationFailure getResult = validationFailures.get(0);
-    List<ValidationFailure.Cause> causes = getResult.getCauses();
-    Assert.assertEquals(1, causes.size());
-    Assert.assertEquals("Table names must be specified.", getResult.getMessage());
-    Assert.assertEquals("Stage Name", getResult.getCorrectiveAction());
-    Assert.assertEquals("Table names must be specified. Stage Name", getResult.getFullMessage());
-    Assert.assertEquals("tableNames", causes.get(0).getAttributes().get("stageConfig"));
-  }
 
-  @Test
-  public void testValidateTableNamesWhenTableHasNoData() {
-    serviceNowMultiSourceConfig =
-      ServiceNowSourceConfigHelper.newConfigBuilder()
-        .setReferenceName("Reference Name")
-        .setRestApiEndpoint(REST_API_ENDPOINT)
-        .setUser(USER)
-        .setPassword(PASSWORD)
-        .setClientId(CLIENT_ID)
-        .setClientSecret(CLIENT_SECRET)
-        .setTableNames("clm_contract_history")
-        .setValueType("Actual")
-        .setStartDate("2021-12-30")
-        .setEndDate("2021-12-31")
-        .setTableNameField("tablename")
-        .buildMultiSource();
-    MockFailureCollector mockFailureCollector = new MockFailureCollector("Stage Name");
     serviceNowMultiSourceConfig.validateTableNames(mockFailureCollector);
     List<ValidationFailure> validationFailures = mockFailureCollector.getValidationFailures();
     Assert.assertEquals(1, validationFailures.size());
-    ValidationFailure getResult = validationFailures.get(0);
-    List<ValidationFailure.Cause> causes = getResult.getCauses();
-    Assert.assertEquals(0, causes.size());
-    Assert.assertEquals("Table: clm_contract_history is empty.", getResult.getMessage());
-    Assert.assertEquals("Stage Name", getResult.getCorrectiveAction());
-  }
-
-  @Test
-  public void testValidateTableNamesWhenTableNameIsInvalid() {
-    serviceNowMultiSourceConfig =
-      ServiceNowSourceConfigHelper.newConfigBuilder()
-        .setReferenceName("Reference Name")
-        .setRestApiEndpoint(REST_API_ENDPOINT)
-        .setUser(USER)
-        .setPassword(PASSWORD)
-        .setClientId(CLIENT_ID)
-        .setClientSecret(CLIENT_SECRET)
-        .setTableNames("invalid_table")
-        .setValueType("Actual")
-        .setStartDate("2021-12-30")
-        .setEndDate("2021-12-31")
-        .setTableNameField("tablename")
-        .buildMultiSource();
-    MockFailureCollector mockFailureCollector = new MockFailureCollector("Stage Name");
-    serviceNowMultiSourceConfig.validateTableNames(mockFailureCollector);
-    List<ValidationFailure> validationFailures = mockFailureCollector.getValidationFailures();
-    Assert.assertEquals(1, validationFailures.size());
-    ValidationFailure getResult = validationFailures.get(0);
-    List<ValidationFailure.Cause> causes = getResult.getCauses();
-    Assert.assertEquals(0, causes.size());
-    Assert.assertEquals("Bad Request. Table: invalid_table is invalid.", getResult.getMessage());
-    Assert.assertEquals("Stage Name", getResult.getCorrectiveAction());
   }
 
 }
