@@ -88,14 +88,6 @@ public class ServiceNowRecordReaderTest {
   }
 
   @Test
-  public void testConvertToValue2() {
-    // TODO: This test is incomplete.
-
-    Schema fieldSchema = Schema.of(Schema.Type.BOOLEAN);
-    serviceNowRecordReader.convertToValue("Field Name", fieldSchema, new HashMap<>(1));
-  }
-
-  @Test
   public void testConvertToStringValue() {
     Assert.assertEquals("Field Value", serviceNowRecordReader.convertToStringValue("Field Value"));
   }

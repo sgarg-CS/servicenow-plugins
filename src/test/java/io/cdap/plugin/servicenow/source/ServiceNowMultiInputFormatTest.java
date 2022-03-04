@@ -16,34 +16,10 @@
 
 package io.cdap.plugin.servicenow.source;
 
-import io.cdap.plugin.servicenow.source.apiclient.ServiceNowTableDataResponse;
-import io.cdap.plugin.servicenow.source.util.ServiceNowColumn;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class ServiceNowMultiInputFormatTest {
-
-  @Test
-  public void testFetchTablesInfo() {
-    ServiceNowMultiSourceConfig config =
-      new ServiceNowMultiSourceConfig("Reference Name", "tableNameTable", "client_id",
-                                      "client_secret", "http://example.com", "user",
-                                      "password", "Actual", "2021-12-30",
-                                      "2021-12-31", "sys_user");
-    ServiceNowColumn column1 = new ServiceNowColumn("sys_created_by", "string");
-    ServiceNowColumn column2 = new ServiceNowColumn("sys_updated_by", "string");
-    List<ServiceNowColumn> columns = new ArrayList<>();
-    columns.add(column1);
-    columns.add(column2);
-    ServiceNowTableDataResponse response = new ServiceNowTableDataResponse();
-    response.setColumns(columns);
-    Assert.assertEquals(0, ServiceNowMultiInputFormat
-      .fetchTablesInfo(config)
-      .size());
-  }
 
   @Test
   public void testFetchTablesInfoWithEmptyTableNames() {
