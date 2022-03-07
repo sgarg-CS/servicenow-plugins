@@ -108,6 +108,22 @@
           }
         },
         {
+          "widget-type": "select",
+          "label": "Page Size",
+          "name": "pageSize",
+          "widget-attributes": {
+            "values": [
+              500,
+              1000,
+              2000,
+              3000,
+              4000,
+              5000
+            ],
+            "default": 5000
+          }
+        },
+        {
           "widget-type": "textbox",
           "label": "Table Name Field",
           "name": "tableNameField",

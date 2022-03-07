@@ -18,15 +18,16 @@ package io.cdap.plugin.servicenow.source;
 
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.plugin.servicenow.source.apiclient.RetriableException;
 import io.cdap.plugin.servicenow.source.apiclient.ServiceNowTableAPIClientImpl;
 import io.cdap.plugin.servicenow.source.apiclient.ServiceNowTableDataResponse;
 import io.cdap.plugin.servicenow.source.util.SchemaBuilder;
-import io.cdap.plugin.servicenow.source.util.ServiceNowConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -34,6 +35,7 @@ import java.util.List;
  */
 public class ServiceNowMultiRecordReader extends ServiceNowBaseRecordReader {
   private static final Logger LOG = LoggerFactory.getLogger(ServiceNowMultiRecordReader.class);
+  private static int retryCounter = 0;
   private final ServiceNowMultiSourceConfig multiSourcePluginConf;
 
   ServiceNowMultiRecordReader(ServiceNowMultiSourceConfig multiSourcePluginConf) {
@@ -78,23 +80,52 @@ public class ServiceNowMultiRecordReader extends ServiceNowBaseRecordReader {
     return recordBuilder.build();
   }
 
-  public void fetchData() {
+  public void fetchData() throws InterruptedException {
     tableName = split.getTableName();
     tableNameField = multiSourcePluginConf.getTableNameField();
 
     ServiceNowTableAPIClientImpl restApi = new ServiceNowTableAPIClientImpl(multiSourcePluginConf);
 
-    // Get the table data
-    results =
-      restApi.fetchTableRecords(tableName, multiSourcePluginConf.getStartDate(), multiSourcePluginConf.getEndDate(),
-                                split.getOffset(), ServiceNowConstants.PAGE_SIZE);
+    try {
+      long start = System.currentTimeMillis();
 
-    LOG.debug("size={}", results.size());
-    if (!results.isEmpty()) {
-      fetchSchema(restApi);
+      // Get the table data
+      results =
+        restApi.fetchTableRecords(tableName, multiSourcePluginConf.getStartDate(), multiSourcePluginConf.getEndDate(),
+                                  split.getOffset(), multiSourcePluginConf.getPageSize().intValue());
+      long end = System.currentTimeMillis();
+      LOG.info("restAPI execution time for {} to {} records took {}s ", split.getOffset(),
+               (split.getOffset() + multiSourcePluginConf.getPageSize().intValue()), (end - start) / 1000);
+
+      if (!results.isEmpty()) {
+        LOG.debug("size={}", results.size());
+        fetchSchema(restApi);
+      }
+
+      iterator = results.iterator();
+    } catch (RetriableException e) {
+      if (retryCounter <= 3) {
+        retryCounter++;
+        if (retryCounter == 1) {
+          LOG.info("First Retry for {} to {} records", split.getOffset(), (split.getOffset() +
+            multiSourcePluginConf.getPageSize().intValue()));
+          Thread.sleep(60000);
+        } else if (retryCounter == 2) {
+          LOG.info("Second Retry for {} to {} records", split.getOffset(), (split.getOffset() +
+            multiSourcePluginConf.getPageSize().intValue()));
+          Thread.sleep(120000);
+        } else {
+          LOG.info("Third Retry for {} to {} records", split.getOffset(), (split.getOffset() +
+            multiSourcePluginConf.getPageSize().intValue()));
+          Thread.sleep(240000);
+        }
+        fetchData();
+      } else {
+        LOG.info("Third Retry failed.");
+      }
+      results = Collections.emptyList();
+      iterator = results.iterator();
     }
-
-    iterator = results.iterator();
   }
 
   private void fetchSchema(ServiceNowTableAPIClientImpl restApi) {

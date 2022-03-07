@@ -36,7 +36,6 @@ import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-
 import javax.annotation.Nullable;
 
 /**
@@ -92,6 +91,11 @@ public class ServiceNowBaseSourceConfig extends PluginConfig {
   @Description("The End date to be used to filter the data. The format must be 'yyyy-MM-dd'.")
   private String endDate;
 
+  @Name(ServiceNowConstants.PROPERTY_PAGE_SIZE)
+  @Macro
+  @Description("The default limit for the page size. ")
+  private Integer pageSize;
+
   @Name(ServiceNowConstants.PROPERTY_TABLE_NAME_FIELD)
   @Macro
   @Nullable
@@ -104,7 +108,8 @@ public class ServiceNowBaseSourceConfig extends PluginConfig {
   public ServiceNowBaseSourceConfig(String referenceName, String tableNameField, String clientId,
                                     String clientSecret, String restApiEndpoint,
                                     String user, String password,
-                                    String valueType, @Nullable String startDate, @Nullable String endDate) {
+                                    String valueType, @Nullable String startDate, @Nullable String endDate,
+                                    Integer pageSize) {
 
     this.referenceName = referenceName;
     this.tableNameField = tableNameField;
@@ -116,6 +121,7 @@ public class ServiceNowBaseSourceConfig extends PluginConfig {
     this.valueType = valueType;
     this.startDate = startDate;
     this.endDate = endDate;
+    this.pageSize = pageSize;
   }
 
   public String getReferenceName() {
@@ -166,6 +172,7 @@ public class ServiceNowBaseSourceConfig extends PluginConfig {
     validateCredentials(collector);
     validateValueType(collector);
     validateDateRange(collector);
+    validatePageSize(collector);
   }
 
   public void validateCredentials(FailureCollector collector) {
@@ -363,6 +370,37 @@ public class ServiceNowBaseSourceConfig extends PluginConfig {
         .withConfigProperty(ServiceNowConstants.PROPERTY_USER)
         .withConfigProperty(ServiceNowConstants.PROPERTY_PASSWORD);
     }
+  }
+
+  /**
+   * Returns the value type chosen.
+   *
+   * @return An instance of Page Size
+   */
+  public Integer getPageSize() {
+    return pageSize;
+  }
+
+  /**
+   * Returns the page Size chosen.
+   */
+  public Integer getPageSize(FailureCollector collector) {
+    if (getPageSize() != null) {
+      return pageSize;
+    }
+    collector.addFailure("Invalid page size: " + pageSize,
+                         String.format("Valid page size are: %s", "500, 1000, 2000, 3000, 4000 and 5000"))
+      .withConfigProperty(ServiceNowConstants.PROPERTY_PAGE_SIZE);
+    collector.getOrThrowException();
+    return null;
+
+  }
+
+  public void validatePageSize(FailureCollector collector) {
+    if (containsMacro(ServiceNowConstants.PROPERTY_PAGE_SIZE)) {
+      return;
+    }
+    getPageSize(collector);
   }
 
 }

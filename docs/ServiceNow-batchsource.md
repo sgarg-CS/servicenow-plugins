@@ -59,6 +59,8 @@ ignored if the Mode is set to `Reporting`.
 
 `Display` - will fetch the display values from the ServiceNow tables.
 
+**Page Size**: The default limit for the page size is 5000. Page Size can have 500, 1000, 2000, 3000, 4000 & 5000 value.
+
 Data Types Mapping
 ----------
 

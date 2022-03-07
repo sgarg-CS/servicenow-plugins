@@ -16,6 +16,8 @@
 
 package io.cdap.plugin.servicenow.restapi;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -48,6 +50,7 @@ public class RestAPIResponse {
   private int httpStatus;
   private Map<String, String> headers;
   private String responseBody;
+  private boolean isRetriable;
 
   RestAPIResponse(int httpStatus, Map<String, String> headers, String responseBody) {
     this.httpStatus = httpStatus;
@@ -98,7 +101,24 @@ public class RestAPIResponse {
   }
 
   public boolean isSuccess() {
-    return successCodes.contains(getHttpStatus());
+    boolean isSuccess = true;
+    if (checkRetriable()) {
+      isSuccess = false;
+    } else if (successCodes.contains(getHttpStatus())) {
+      isSuccess = true;
+    }
+    return isSuccess;
+  }
+
+  private boolean checkRetriable() {
+    Gson gson = new Gson();
+    JsonObject jo = gson.fromJson(this.getResponseBody(), JsonObject.class);
+    if (jo.get("status") != null && jo.get("status").getAsString().equals("failure")) {
+      if (jo.getAsJsonObject("error").get("message").getAsString().contains("maximum execution time exceeded")) {
+        isRetriable = true;
+      }
+    }
+    return isRetriable;
   }
 
   public Map<String, String> getHeaders() {
@@ -107,5 +127,9 @@ public class RestAPIResponse {
 
   public String getResponseBody() {
     return responseBody;
+  }
+  
+  public Boolean getRetriable() {
+    return isRetriable;
   }
 }

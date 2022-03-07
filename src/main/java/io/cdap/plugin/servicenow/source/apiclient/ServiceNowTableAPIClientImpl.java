@@ -20,6 +20,7 @@ import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import io.cdap.plugin.servicenow.restapi.RestAPIClient;
 import io.cdap.plugin.servicenow.restapi.RestAPIResponse;
@@ -89,9 +90,16 @@ public class ServiceNowTableAPIClientImpl extends RestAPIClient {
     try {
       String accessToken = getAccessToken();
       requestBuilder.setAuthHeader(accessToken);
+      LOG.info("Request URL: {} ", requestBuilder.build().getUrl());
+      long start = System.currentTimeMillis();
       apiResponse = executeGet(requestBuilder.build());
+      long end = System.currentTimeMillis();
+      LOG.info("restAPI execution time for {} to {} records took {}s ", offset,
+               (offset + limit), (end - start) / 1000);
       if (!apiResponse.isSuccess()) {
-        LOG.error("Error - {}", getErrorMessage(apiResponse.getResponseBody()));
+        if (apiResponse.getRetriable()) {
+          throw new RetriableException();
+        }
         return Collections.emptyList();
       }
 
@@ -198,12 +206,16 @@ public class ServiceNowTableAPIClientImpl extends RestAPIClient {
 
   public List<Map<String, Object>> parseResponseToResultListOfMap(String responseBody) {
     Gson gson = new Gson();
+    long start = System.currentTimeMillis();
+
     JsonObject jo = gson.fromJson(responseBody, JsonObject.class);
     JsonArray ja = jo.getAsJsonArray("result");
 
     Type type = new TypeToken<List<Map<String, Object>>>() {
     }.getType();
 
+    long end = System.currentTimeMillis();
+    LOG.info("parsing response took {}ms ",  (end - start));
     return gson.fromJson(ja, type);
   }
 

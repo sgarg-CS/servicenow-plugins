@@ -14,20 +14,18 @@
  * the License.
  */
 
-package io.cdap.plugin.servicenow.source;
+package io.cdap.plugin.servicenow.source.apiclient;
 
-import org.junit.Assert;
-import org.junit.Test;
+/**
+ * Custom Exception Class for handling retrying API calls
+ */
+public class RetriableException extends RuntimeException {
 
-public class ServiceNowMultiInputFormatTest {
+  private static final long serialVersionUID = 1L;
 
-  @Test
-  public void testFetchTablesInfoWithEmptyTableNames() {
-    ServiceNowMultiSourceConfig config = new ServiceNowMultiSourceConfig("Reference Name",
-     "tableName", "client_id", "Client Secret", "http://example.com",
-     "user", "password", "Actual", "2021-12-30", "2021-12-31", 5000, "");
-    Assert.assertTrue(ServiceNowMultiInputFormat
-                        .fetchTablesInfo(config)
-                        .isEmpty());
+  public RetriableException() {
+         super();
   }
+
+
 }

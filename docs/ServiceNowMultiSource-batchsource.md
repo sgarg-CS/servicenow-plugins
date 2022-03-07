@@ -35,6 +35,8 @@ Properties
 **Table Name Field**: The name of the field that holds the table name. Must not be the name of any table column that
 will be read. Defaults to `tablename`. Note, the Table name field value will be ignored if the Mode is set to `Table`.
 
+**Page Size**: The default limit for the page size is 5000. Page Size can have 500, 1000, 2000, 3000, 4000 & 5000 value.
+
 Data Types Mapping
 ----------
 
