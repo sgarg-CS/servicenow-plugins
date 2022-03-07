@@ -24,11 +24,8 @@ import io.cdap.plugin.servicenow.source.util.ServiceNowConstants;
 import io.cdap.plugin.servicenow.source.util.SourceApplication;
 import io.cdap.plugin.servicenow.source.util.SourceQueryMode;
 import io.cdap.plugin.servicenow.source.util.Util;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
-
 import javax.annotation.Nullable;
 
 /**
@@ -81,9 +78,10 @@ public class ServiceNowSourceConfig extends ServiceNowBaseSourceConfig {
   public ServiceNowSourceConfig(String referenceName, String queryMode, @Nullable String applicationName,
                                 @Nullable String tableNameField, @Nullable String tableName, String clientId,
                                 String clientSecret, String restApiEndpoint, String user, String password,
-                                String valueType, @Nullable String startDate, @Nullable String endDate) {
+                                String valueType, @Nullable String startDate, @Nullable String endDate,
+                                Integer pageSize) {
     super(referenceName, tableNameField, clientId, clientSecret, restApiEndpoint, user, password, valueType, startDate,
-      endDate);
+      endDate, pageSize);
     this.referenceName = referenceName;
     this.queryMode = queryMode;
     this.applicationName = applicationName;

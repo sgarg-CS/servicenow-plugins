@@ -22,7 +22,6 @@ import io.cdap.plugin.servicenow.source.apiclient.ServiceNowTableAPIClientImpl;
 import io.cdap.plugin.servicenow.source.apiclient.ServiceNowTableDataResponse;
 import io.cdap.plugin.servicenow.source.util.SchemaBuilder;
 import io.cdap.plugin.servicenow.source.util.ServiceNowColumn;
-import io.cdap.plugin.servicenow.source.util.ServiceNowConstants;
 import io.cdap.plugin.servicenow.source.util.ServiceNowTableInfo;
 import io.cdap.plugin.servicenow.source.util.SourceQueryMode;
 import org.apache.hadoop.conf.Configuration;
@@ -45,6 +44,7 @@ import java.util.List;
  */
 public class ServiceNowInputFormat extends InputFormat<NullWritable, StructuredRecord> {
   private static final Logger LOG = LoggerFactory.getLogger(ServiceNowInputFormat.class);
+  private int pageSize;
 
   /**
    * Updates the jobConfig with the ServiceNow table information, which will then be read in getSplit() function.
@@ -114,6 +114,7 @@ public class ServiceNowInputFormat extends InputFormat<NullWritable, StructuredR
   @Override
   public List<InputSplit> getSplits(JobContext jobContext) throws IOException, InterruptedException {
     ServiceNowJobConfiguration jobConfig = new ServiceNowJobConfiguration(jobContext.getConfiguration());
+    pageSize = jobConfig.getPluginConf().getPageSize().intValue();
 
     List<ServiceNowTableInfo> tableInfos = jobConfig.getTableInfos();
     List<InputSplit> resultSplits = new ArrayList<>();
@@ -121,21 +122,21 @@ public class ServiceNowInputFormat extends InputFormat<NullWritable, StructuredR
     for (ServiceNowTableInfo tableInfo : tableInfos) {
       String tableName = tableInfo.getTableName();
       int totalRecords = tableInfo.getRecordCount();
-      if (totalRecords <= ServiceNowConstants.PAGE_SIZE) {
+      if (totalRecords <= pageSize) {
         // add single split for table and continue
         resultSplits.add(new ServiceNowInputSplit(tableName, 0));
         continue;
       }
 
-      int pages = (tableInfo.getRecordCount() / ServiceNowConstants.PAGE_SIZE);
-      if (tableInfo.getRecordCount() % ServiceNowConstants.PAGE_SIZE > 0) {
+      int pages = (tableInfo.getRecordCount() / pageSize);
+      if (tableInfo.getRecordCount() % pageSize > 0) {
         pages++;
       }
       int offset = 0;
 
       for (int page = 1; page <= pages; page++) {
         resultSplits.add(new ServiceNowInputSplit(tableName, offset));
-        offset += ServiceNowConstants.PAGE_SIZE;
+        offset += pageSize;
       }
     }
 
