@@ -20,7 +20,6 @@ import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import io.cdap.plugin.servicenow.restapi.RestAPIClient;
 import io.cdap.plugin.servicenow.restapi.RestAPIResponse;
@@ -28,6 +27,7 @@ import io.cdap.plugin.servicenow.source.ServiceNowBaseSourceConfig;
 import io.cdap.plugin.servicenow.source.util.ServiceNowColumn;
 import io.cdap.plugin.servicenow.source.util.ServiceNowConstants;
 import io.cdap.plugin.servicenow.source.util.Util;
+import org.apache.http.HttpStatus;
 import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.slf4j.Logger;
@@ -104,7 +104,14 @@ public class ServiceNowTableAPIClientImpl extends RestAPIClient {
       }
 
       return parseResponseToResultListOfMap(apiResponse.getResponseBody());
-    } catch (OAuthSystemException | OAuthProblemException e) {
+    } catch (OAuthSystemException e) {
+      if (apiResponse.getHttpStatus() == HttpStatus.SC_BAD_GATEWAY) {
+        throw new RetriableException();
+      } else {
+        LOG.error("Error in fetchTableRecords", e);
+        return Collections.emptyList();
+      }
+    } catch (OAuthProblemException e) {
       LOG.error("Error in fetchTableRecords", e);
       return Collections.emptyList();
     }
