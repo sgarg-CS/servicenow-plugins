@@ -27,7 +27,6 @@ import io.cdap.plugin.servicenow.source.ServiceNowBaseSourceConfig;
 import io.cdap.plugin.servicenow.source.util.ServiceNowColumn;
 import io.cdap.plugin.servicenow.source.util.ServiceNowConstants;
 import io.cdap.plugin.servicenow.source.util.Util;
-import org.apache.http.HttpStatus;
 import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.slf4j.Logger;
@@ -91,11 +90,7 @@ public class ServiceNowTableAPIClientImpl extends RestAPIClient {
       String accessToken = getAccessToken();
       requestBuilder.setAuthHeader(accessToken);
       LOG.info("Request URL: {} ", requestBuilder.build().getUrl());
-      long start = System.currentTimeMillis();
       apiResponse = executeGet(requestBuilder.build());
-      long end = System.currentTimeMillis();
-      LOG.info("restAPI execution time for {} to {} records took {}s ", offset,
-               (offset + limit), (end - start) / 1000);
       if (!apiResponse.isSuccess()) {
         if (apiResponse.getRetriable()) {
           throw new RetriableException();
@@ -105,12 +100,7 @@ public class ServiceNowTableAPIClientImpl extends RestAPIClient {
 
       return parseResponseToResultListOfMap(apiResponse.getResponseBody());
     } catch (OAuthSystemException e) {
-      if (apiResponse.getHttpStatus() == HttpStatus.SC_BAD_GATEWAY) {
-        throw new RetriableException();
-      } else {
-        LOG.error("Error in fetchTableRecords", e);
-        return Collections.emptyList();
-      }
+      throw new RetriableException();
     } catch (OAuthProblemException e) {
       LOG.error("Error in fetchTableRecords", e);
       return Collections.emptyList();
@@ -234,5 +224,28 @@ public class ServiceNowTableAPIClientImpl extends RestAPIClient {
     } catch (Exception e) {
       return e.getMessage();
     }
+  }
+
+  public List<Map<String, Object>> fetchTableRecordsRetriableMode(String tableName, String startDate, String endDate,
+                                                                  int offset, int limit, boolean isRetrying)
+    throws InterruptedException {
+    List<Map<String, Object>> results = new ArrayList<>();
+    try {
+      results = this.fetchTableRecords(tableName, startDate, endDate, offset, limit);
+    } catch (RetriableException e) {
+      if (!isRetrying) {
+        for (int retryCounter = 0; retryCounter < 3; retryCounter++) {
+          Thread.sleep(120000);
+          LOG.info("Retry {} for batch {} to {} started...", retryCounter, offset, (offset + limit));
+
+          results = fetchTableRecordsRetriableMode(tableName, startDate, endDate, offset, limit, true);
+          if (!results.isEmpty()) {
+            LOG.info("Retry {} for batch {} to {} succeeded.", retryCounter, offset, (offset + limit));
+            break;
+          }
+        }
+      }
+    }
+    return results;
   }
 }
