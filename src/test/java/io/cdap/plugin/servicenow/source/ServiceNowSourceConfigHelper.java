@@ -58,6 +58,7 @@ public class ServiceNowSourceConfigHelper {
     private String valueType = "Actual";
     private String startDate = "";
     private String endDate = "";
+    private final Integer pageSize = 5000;
 
     public ConfigBuilder setReferenceName(String referenceName) {
       this.referenceName = referenceName;
@@ -130,13 +131,13 @@ public class ServiceNowSourceConfigHelper {
     }
 
     public ServiceNowSourceConfig build() {
-      return new ServiceNowSourceConfig(referenceName, queryMode, applicationName, tableNameField, tableName,
-        clientId, clientSecret, restApiEndpoint, user, password, valueType, startDate, endDate);
+      return new ServiceNowSourceConfig(referenceName, queryMode, applicationName, tableNameField, tableName, clientId,
+      clientSecret, restApiEndpoint, user, password, valueType, startDate, endDate, pageSize);
     }
 
     public ServiceNowMultiSourceConfig buildMultiSource() {
-      return new ServiceNowMultiSourceConfig(referenceName, tableNameField,
-        clientId, clientSecret, restApiEndpoint, user, password, valueType, startDate, endDate, tableNames);
+      return new ServiceNowMultiSourceConfig(referenceName, tableNameField, clientId, clientSecret, restApiEndpoint,
+      user, password, valueType, startDate, endDate, pageSize, tableNames);
     }
 
 

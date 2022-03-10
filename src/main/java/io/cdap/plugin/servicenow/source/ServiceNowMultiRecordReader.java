@@ -21,7 +21,6 @@ import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.plugin.servicenow.source.apiclient.ServiceNowTableAPIClientImpl;
 import io.cdap.plugin.servicenow.source.apiclient.ServiceNowTableDataResponse;
 import io.cdap.plugin.servicenow.source.util.SchemaBuilder;
-import io.cdap.plugin.servicenow.source.util.ServiceNowConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,16 +84,16 @@ public class ServiceNowMultiRecordReader extends ServiceNowBaseRecordReader {
     ServiceNowTableAPIClientImpl restApi = new ServiceNowTableAPIClientImpl(multiSourcePluginConf);
 
     // Get the table data
-    results =
-      restApi.fetchTableRecords(tableName, multiSourcePluginConf.getStartDate(), multiSourcePluginConf.getEndDate(),
-                                split.getOffset(), ServiceNowConstants.PAGE_SIZE);
+    results = restApi.fetchTableRecords(tableName, multiSourcePluginConf.getStartDate(),
+      multiSourcePluginConf.getEndDate(), split.getOffset(), multiSourcePluginConf.getPageSize());
 
-    LOG.debug("size={}", results.size());
     if (!results.isEmpty()) {
+      LOG.debug("size={}", results.size());
       fetchSchema(restApi);
     }
 
     iterator = results.iterator();
+
   }
 
   private void fetchSchema(ServiceNowTableAPIClientImpl restApi) {

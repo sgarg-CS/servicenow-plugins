@@ -144,6 +144,22 @@
           "widget-attributes" : {
             "placeholder": "End date to be used to filter the data"
           }
+        },
+        {
+          "widget-type": "select",
+          "label": "Page Size",
+          "name": "pageSize",
+          "widget-attributes": {
+            "values": [
+              500,
+              1000,
+              2000,
+              3000,
+              4000,
+              5000
+            ],
+            "default": 5000
+          }
         }
       ]
     }

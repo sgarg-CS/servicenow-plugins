@@ -97,6 +97,11 @@ public interface ServiceNowConstants {
   String PROPERTY_END_DATE = "endDate";
 
   /**
+   * Configuration property name used to specify page size.
+   */
+  String PROPERTY_PAGE_SIZE = "pageSize";
+
+  /**
    * Configuration property name used to specify table name field.
    */
   String TABLE_NAME_FIELD_DEFAULT = "tablename";
@@ -110,11 +115,6 @@ public interface ServiceNowConstants {
    * The date format.
    */
   String DATE_FORMAT = "yyyy-MM-dd";
-
-  /**
-   * The max limit for the page size.
-   */
-  int PAGE_SIZE = 5000;
 
   /**
    * The total count.

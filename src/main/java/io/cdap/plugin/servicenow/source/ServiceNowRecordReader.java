@@ -21,7 +21,6 @@ import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.plugin.servicenow.source.apiclient.ServiceNowTableAPIClientImpl;
 import io.cdap.plugin.servicenow.source.apiclient.ServiceNowTableDataResponse;
 import io.cdap.plugin.servicenow.source.util.SchemaBuilder;
-import io.cdap.plugin.servicenow.source.util.ServiceNowConstants;
 import io.cdap.plugin.servicenow.source.util.SourceQueryMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +35,6 @@ import java.util.List;
 public class ServiceNowRecordReader extends ServiceNowBaseRecordReader {
   private static final Logger LOG = LoggerFactory.getLogger(ServiceNowRecordReader.class);
   private final ServiceNowSourceConfig pluginConf;
-
 
   ServiceNowRecordReader(ServiceNowSourceConfig pluginConf) {
     super();
@@ -93,7 +91,7 @@ public class ServiceNowRecordReader extends ServiceNowBaseRecordReader {
 
     // Get the table data
     results = restApi.fetchTableRecords(tableName, pluginConf.getStartDate(), pluginConf.getEndDate(),
-                                        split.getOffset(), ServiceNowConstants.PAGE_SIZE);
+                                        split.getOffset(), pluginConf.getPageSize());
     LOG.debug("size={}", results.size());
     if (!results.isEmpty()) {
       fetchSchema(restApi);

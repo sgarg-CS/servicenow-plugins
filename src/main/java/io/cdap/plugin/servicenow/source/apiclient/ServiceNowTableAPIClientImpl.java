@@ -198,12 +198,16 @@ public class ServiceNowTableAPIClientImpl extends RestAPIClient {
 
   public List<Map<String, Object>> parseResponseToResultListOfMap(String responseBody) {
     Gson gson = new Gson();
+    long start = System.currentTimeMillis();
+
     JsonObject jo = gson.fromJson(responseBody, JsonObject.class);
     JsonArray ja = jo.getAsJsonArray("result");
 
     Type type = new TypeToken<List<Map<String, Object>>>() {
     }.getType();
 
+    long end = System.currentTimeMillis();
+    LOG.info("parsing response took {}ms ",  (end - start));
     return gson.fromJson(ja, type);
   }
 
