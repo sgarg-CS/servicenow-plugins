@@ -89,15 +89,9 @@ public class ServiceNowRecordReader extends ServiceNowBaseRecordReader {
 
     ServiceNowTableAPIClientImpl restApi = new ServiceNowTableAPIClientImpl(pluginConf);
 
-    long start = System.currentTimeMillis();
-
     // Get the table data
     results = restApi.fetchTableRecordsRetriableMode(tableName, pluginConf.getStartDate(), pluginConf.getEndDate(),
                                                      split.getOffset(), pluginConf.getPageSize(), false);
-    long end = System.currentTimeMillis();
-
-    LOG.info("restAPI execution time for {} to {} records took {}s ", split.getOffset(),
-             (split.getOffset() + pluginConf.getPageSize()), (end - start) / 1000);
     LOG.debug("size={}", results.size());
     if (!results.isEmpty()) {
       fetchSchema(restApi);

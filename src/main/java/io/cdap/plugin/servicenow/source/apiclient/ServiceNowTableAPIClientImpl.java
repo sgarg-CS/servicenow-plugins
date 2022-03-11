@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -48,7 +49,14 @@ public class ServiceNowTableAPIClientImpl extends RestAPIClient {
   private static final String FIELD_CREATED_ON = "sys_created_on";
   private static final String FIELD_UPDATED_ON = "sys_updated_on";
   private static final String OAUTH_URL_TEMPLATE = "%s/oauth_token.do";
-
+  private static final Map<Integer, Integer> retryDelay = new HashMap<Integer, Integer>() {
+    {
+      put(1, 120000);
+      put(2, 240000);
+      put(3, 360000);
+      put(4, 600000);
+    }
+  };
   private ServiceNowBaseSourceConfig conf;
 
   public ServiceNowTableAPIClientImpl(ServiceNowBaseSourceConfig conf) {
@@ -90,7 +98,11 @@ public class ServiceNowTableAPIClientImpl extends RestAPIClient {
       String accessToken = getAccessToken();
       requestBuilder.setAuthHeader(accessToken);
       LOG.info("Request URL: {} ", requestBuilder.build().getUrl());
+      long start = System.currentTimeMillis();
       apiResponse = executeGet(requestBuilder.build());
+      long end = System.currentTimeMillis();
+      LOG.info("restAPI execution time for {} to {} records took {}s ", offset,
+               (offset + limit), (end - start) / 1000);
       if (!apiResponse.isSuccess()) {
         if (apiResponse.getRetriable()) {
           throw new RetriableException();
@@ -234,13 +246,13 @@ public class ServiceNowTableAPIClientImpl extends RestAPIClient {
       results = this.fetchTableRecords(tableName, startDate, endDate, offset, limit);
     } catch (RetriableException e) {
       if (!isRetrying) {
-        for (int retryCounter = 0; retryCounter < 3; retryCounter++) {
-          Thread.sleep(120000);
-          LOG.info("Retry {} for batch {} to {} started...", retryCounter, offset, (offset + limit));
+        for (int retryCounter = 0; retryCounter < 4; retryCounter++) {
+          Thread.sleep(retryDelay.get(retryCounter + 1));
+          LOG.info("Retry {} for batch {} to {} started...", retryCounter + 1, offset, (offset + limit));
 
           results = fetchTableRecordsRetriableMode(tableName, startDate, endDate, offset, limit, true);
           if (!results.isEmpty()) {
-            LOG.info("Retry {} for batch {} to {} succeeded.", retryCounter, offset, (offset + limit));
+            LOG.info("Retry {} for batch {} to {} succeeded.", retryCounter + 1, offset, (offset + limit));
             break;
           }
         }

@@ -82,16 +82,11 @@ public class ServiceNowMultiRecordReader extends ServiceNowBaseRecordReader {
     tableNameField = multiSourcePluginConf.getTableNameField();
 
     ServiceNowTableAPIClientImpl restApi = new ServiceNowTableAPIClientImpl(multiSourcePluginConf);
-    long start = System.currentTimeMillis();
 
     // Get the table data
     results = restApi.fetchTableRecordsRetriableMode(tableName, multiSourcePluginConf.getStartDate(),
       multiSourcePluginConf.getEndDate(), split.getOffset(), multiSourcePluginConf.getPageSize().intValue(),
       false);
-    long end = System.currentTimeMillis();
-    LOG.info("restAPI execution time for {} to {} records took {}s ", split.getOffset(),
-             (split.getOffset() + multiSourcePluginConf.getPageSize().intValue()), (end - start) / 1000);
-
     if (!results.isEmpty()) {
       LOG.debug("size={}", results.size());
       fetchSchema(restApi);
