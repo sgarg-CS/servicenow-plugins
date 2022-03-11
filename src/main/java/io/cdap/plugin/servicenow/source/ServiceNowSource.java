@@ -75,9 +75,11 @@ public class ServiceNowSource extends BatchSource<NullWritable, StructuredRecord
     // Since we have validated all the properties, throw an exception if there are any errors in the collector.
     // This is to avoid adding same validation errors again in getSchema method call
     collector.getOrThrowException();
-    if (conf.shouldGetSchema()) {
-      List<ServiceNowTableInfo> tableInfo = ServiceNowInputFormat.fetchTableInfo(conf.getQueryMode(collector), conf);
-      stageConfigurer.setOutputSchema(tableInfo.get(0).getSchema());
+    if (conf.getQueryMode() == SourceQueryMode.TABLE && conf.shouldGetSchema()) {
+        List<ServiceNowTableInfo> tableInfo = ServiceNowInputFormat.fetchTableInfo(conf.getQueryMode(collector), conf);
+        stageConfigurer.setOutputSchema(tableInfo.get(0).getSchema());
+    } else if (conf.getQueryMode() == SourceQueryMode.REPORTING) {
+      stageConfigurer.setOutputSchema(null);
     }
   }
 
