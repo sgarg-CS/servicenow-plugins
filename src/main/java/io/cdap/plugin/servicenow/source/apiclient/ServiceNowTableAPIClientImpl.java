@@ -103,6 +103,8 @@ public class ServiceNowTableAPIClientImpl extends RestAPIClient {
       long end = System.currentTimeMillis();
       LOG.info("restAPI execution time for {} to {} records took {}s ", offset,
                (offset + limit), (end - start) / 1000);
+      LOG.info("Http Response {} for {} to {} records", apiResponse.getHttpStatus(), offset,
+               (offset + limit));
       if (!apiResponse.isSuccess()) {
         if (apiResponse.getRetriable()) {
           throw new RetriableException();

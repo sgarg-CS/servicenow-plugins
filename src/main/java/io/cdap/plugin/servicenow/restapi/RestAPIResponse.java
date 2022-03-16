@@ -101,7 +101,7 @@ public class RestAPIResponse {
   }
 
   public boolean isSuccess() {
-    boolean isSuccess = true;
+    boolean isSuccess = false;
     if (checkRetriable()) {
       isSuccess = false;
     } else if (successCodes.contains(getHttpStatus())) {
